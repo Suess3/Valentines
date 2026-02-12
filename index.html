@@ -108,8 +108,13 @@
         <img src="us.jpg" 
              onclick="spinImage(this)"
              alt="Us together" 
-             class="w-64 h-64 object-cover rounded-2xl border-4 border-white shadow-2xl transform rotate-3 hover:rotate-0 transition duration-300 cursor-pointer"
+             class="w-64 h-64 object-cover rounded-2xl border-4 border-white shadow-2xl transform rotate-3 hover:rotate-0 transition duration-300 cursor-pointer mb-6"
              onerror="this.src='https://placehold.co/300x300/ffb6c1/ffffff?text=Upload+us.jpg'">
+
+        <!-- Heart Shower Button -->
+        <button onclick="shootHearts()" class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-8 rounded-full text-xl shadow-lg transform transition hover:scale-105 active:scale-95">
+            Press Me! 💘
+        </button>
     </div>
 
     <script>
@@ -276,6 +281,55 @@
             }
         }
 
+        // --- Heart Shower Logic (Press Me Button) ---
+        function shootHearts() {
+            // Create a burst of hearts for 2 seconds
+            const duration = 2000;
+            const end = Date.now() + duration;
+
+            // Interval to spawn hearts rapidly
+            const interval = setInterval(() => {
+                if (Date.now() > end) {
+                    clearInterval(interval);
+                    return;
+                }
+                // Spawn multiple hearts at once for a dense stream
+                spawnHeartStream();
+                spawnHeartStream();
+                spawnHeartStream();
+                spawnHeartStream();
+            }, 50);
+        }
+
+        function spawnHeartStream() {
+            const heart = document.createElement('div');
+            const hearts = ['💖', '💕', '💗', '💓', '💝', '😍', '🥰'];
+            heart.innerText = hearts[Math.floor(Math.random() * hearts.length)];
+            heart.style.position = 'fixed';
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.bottom = '-10vh';
+            heart.style.fontSize = (Math.random() * 2 + 1.5) + 'rem';
+            heart.style.pointerEvents = 'none';
+            heart.style.zIndex = '1000';
+            
+            // Random float duration and movement
+            const duration = Math.random() * 2 + 2; // 2 to 4 seconds
+            heart.style.transition = `bottom ${duration}s linear, opacity ${duration}s ease-in, transform ${duration}s linear`;
+            
+            document.body.appendChild(heart);
+            
+            // Force reflow
+            void heart.offsetWidth;
+            
+            // Animate
+            heart.style.bottom = '110vh'; // Float off top of screen
+            heart.style.opacity = '0';
+            heart.style.transform = `rotate(${Math.random() * 360}deg) translateX(${Math.random() * 100 - 50}px)`; // Spin and sway
+            
+            // Cleanup
+            setTimeout(() => heart.remove(), duration * 1000);
+        }
+
         // Initialize background hearts
         createHearts();
 
@@ -291,4 +345,3 @@
     </script>
 </body>
 </html>
-
