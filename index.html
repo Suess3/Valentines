@@ -39,7 +39,7 @@
 
         /* Button transition for smooth sliding movement */
         #noBtn {
-            transition: transform 0.2s ease-out;
+            transition: transform 0.1s ease-out; /* Made faster */
         }
         
         /* Pulse animation for the Yes button */
@@ -105,35 +105,52 @@
 
         function moveButton() {
             // How far the button should dodge each time (pixels)
-            const moveAmount = 150;
+            const moveAmount = 200;
+            const padding = 30; // Safety buffer between buttons
 
-            // Randomly pick a direction: 1 for positive, -1 for negative
-            const dirX = Math.random() < 0.5 ? -1 : 1;
-            const dirY = Math.random() < 0.5 ? -1 : 1;
+            // Get current positions
+            const yesRect = yesBtn.getBoundingClientRect();
+            const noRect = noBtn.getBoundingClientRect();
 
-            // Calculate proposed new offsets (at least 50px away)
-            let moveX = (Math.random() * moveAmount + 50) * dirX;
-            let moveY = (Math.random() * moveAmount + 50) * dirY;
+            // Try to find a valid spot 20 times (prevents infinite loops)
+            for (let i = 0; i < 20; i++) {
+                // Randomly pick a direction: 1 for positive, -1 for negative
+                const dirX = Math.random() < 0.5 ? -1 : 1;
+                const dirY = Math.random() < 0.5 ? -1 : 1;
 
-            // Check boundaries to keep it on screen
-            const rect = noBtn.getBoundingClientRect();
+                // Calculate proposed new offsets (at least 50px away)
+                let moveX = (Math.random() * moveAmount + 50) * dirX;
+                let moveY = (Math.random() * moveAmount + 50) * dirY;
 
-            // If it's going to go off the right or left edge of the screen, flip the X direction
-            if (rect.right + moveX > window.innerWidth || rect.left + moveX < 0) {
-                moveX = -moveX;
+                // Predict where the button would end up on screen
+                const newLeft = noRect.left + moveX;
+                const newTop = noRect.top + moveY;
+                const newRight = newLeft + noRect.width;
+                const newBottom = newTop + noRect.height;
+
+                // 1. Check Window Boundaries
+                if (newLeft < 0 || newRight > window.innerWidth ||
+                    newTop < 0 || newBottom > window.innerHeight) {
+                    continue; // Try again
+                }
+
+                // 2. Check Collision with Yes Button (with padding)
+                // If the new position overlaps the Yes button box + padding, try again
+                if (!(newLeft > yesRect.right + padding || 
+                      newRight < yesRect.left - padding || 
+                      newTop > yesRect.bottom + padding || 
+                      newBottom < yesRect.top - padding)) {
+                    continue; // Overlap detected, try again
+                }
+
+                // If we get here, the move is valid!
+                currentX += moveX;
+                currentY += moveY;
+                
+                // Apply the new position via CSS transform. 
+                noBtn.style.transform = `translate(${currentX}px, ${currentY}px)`;
+                return; // Stop trying
             }
-            // If it's going to go off the bottom or top edge, flip the Y direction
-            if (rect.bottom + moveY > window.innerHeight || rect.top + moveY < 0) {
-                moveY = -moveY;
-            }
-
-            // Add the new movement to the current position tracker
-            currentX += moveX;
-            currentY += moveY;
-
-            // Apply the new position via CSS transform. 
-            // Combined with our 0.2s CSS transition, it will smoothly glide!
-            noBtn.style.transform = `translate(${currentX}px, ${currentY}px)`;
         }
 
         // Add click event listener just in case they manage to click it (fast fingers!)
