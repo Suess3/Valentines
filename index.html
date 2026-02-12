@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Will you be my Valentine?</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            overflow: hidden; /* Prevent scrollbars when button moves */
+        }
+        h1, .romantic-font {
+            font-family: 'Pacifico', cursive;
+        }
+        
+        /* Floating Hearts Animation Background */
+        .heart-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+            pointer-events: none;
+        }
+        .heart-icon {
+            position: absolute;
+            bottom: -10vh;
+            color: rgba(255, 255, 255, 0.3);
+            animation: floatUp 10s linear infinite;
+            font-size: 2rem;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.5; }
+            100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* Button transition for smooth sliding movement */
+        #noBtn {
+            transition: transform 0.2s ease-out;
+        }
+        
+        /* Pulse animation for the Yes button */
+        .pulse-heart {
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-pink-300 via-purple-300 to-indigo-300 h-screen w-screen flex flex-col justify-center items-center select-none">
+
+    <!-- Background Hearts -->
+    <div id="heartContainer" class="heart-bg"></div>
+
+    <!-- Main Content Card -->
+    <div id="mainCard" class="bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-2xl text-center max-w-md w-full mx-4 relative z-10 border-4 border-white">
+        
+        <!-- Cute GIF or Image placeholder -->
+        <div class="mb-6">
+            <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3R6bW53YnF6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eXJ6eSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/cLS1cfxvGOPVpf9g3y/giphy.gif" 
+                 alt="Cute Bear" 
+                 class="w-40 h-40 mx-auto object-contain rounded-full border-4 border-pink-200 shadow-lg"
+                 onerror="this.src='https://placehold.co/150x150/ffb6c1/ffffff?text=U+R+Cute'">
+        </div>
+
+        <h1 class="text-4xl md:text-5xl text-pink-600 mb-8 drop-shadow-sm">Will you be my Valentine?</h1>
+
+        <div class="flex flex-row gap-6 justify-center items-center relative w-full z-20">
+            
+            <!-- Yes Button -->
+            <button id="yesBtn" onclick="handleYes()" class="pulse-heart bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-full text-xl shadow-lg transform transition-all hover:scale-110">
+                Yes! 💖
+            </button>
+
+            <!-- No Button -->
+            <button id="noBtn" onmouseover="moveButton()" ontouchstart="moveButton()" class="bg-red-400 text-white font-bold py-3 px-8 rounded-full text-xl shadow-lg cursor-not-allowed">
+                No 😢
+            </button>
+        </div>
+    </div>
+
+    <!-- Success Message (Hidden by default) -->
+    <div id="successMessage" class="hidden flex-col items-center justify-center text-center z-50 animate-bounce">
+        <h1 class="text-5xl md:text-7xl text-white font-bold mb-4 drop-shadow-lg romantic-font">YAY! I knew it! ❤️</h1>
+        <p class="text-xl md:text-3xl text-white font-semibold">Love you bubu, happy Valentines!</p>
+        <div class="mt-8 text-8xl">🥰🌹🍫</div>
+    </div>
+
+    <script>
+        // --- Logic for the "Run Away" Button ---
+        const noBtn = document.getElementById('noBtn');
+        const yesBtn = document.getElementById('yesBtn');
+        const mainCard = document.getElementById('mainCard');
+        const successMessage = document.getElementById('successMessage');
+
+        // Track the accumulated distance the button has moved
+        let currentX = 0;
+        let currentY = 0;
+
+        function moveButton() {
+            // How far the button should dodge each time (pixels)
+            const moveAmount = 150;
+
+            // Randomly pick a direction: 1 for positive, -1 for negative
+            const dirX = Math.random() < 0.5 ? -1 : 1;
+            const dirY = Math.random() < 0.5 ? -1 : 1;
+
+            // Calculate proposed new offsets (at least 50px away)
+            let moveX = (Math.random() * moveAmount + 50) * dirX;
+            let moveY = (Math.random() * moveAmount + 50) * dirY;
+
+            // Check boundaries to keep it on screen
+            const rect = noBtn.getBoundingClientRect();
+
+            // If it's going to go off the right or left edge of the screen, flip the X direction
+            if (rect.right + moveX > window.innerWidth || rect.left + moveX < 0) {
+                moveX = -moveX;
+            }
+            // If it's going to go off the bottom or top edge, flip the Y direction
+            if (rect.bottom + moveY > window.innerHeight || rect.top + moveY < 0) {
+                moveY = -moveY;
+            }
+
+            // Add the new movement to the current position tracker
+            currentX += moveX;
+            currentY += moveY;
+
+            // Apply the new position via CSS transform. 
+            // Combined with our 0.2s CSS transition, it will smoothly glide!
+            noBtn.style.transform = `translate(${currentX}px, ${currentY}px)`;
+        }
+
+        // Add click event listener just in case they manage to click it (fast fingers!)
+        noBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            moveButton();
+        });
+
+        // --- Logic for the "Yes" Button ---
+        function handleYes() {
+            // Hide the main card
+            mainCard.style.display = 'none';
+            // Hide the running button
+            noBtn.style.display = 'none';
+            
+            // Show success message
+            successMessage.classList.remove('hidden');
+            successMessage.classList.add('flex');
+            
+            // Trigger Confetti
+            startConfetti();
+        }
+
+        // --- Background Floating Hearts Logic ---
+        function createHearts() {
+            const container = document.getElementById('heartContainer');
+            const heartCount = 20;
+
+            for (let i = 0; i < heartCount; i++) {
+                const heart = document.createElement('div');
+                heart.classList.add('heart-icon');
+                heart.innerHTML = '❤';
+                
+                // Randomize position and animation delay
+                heart.style.left = Math.random() * 100 + 'vw';
+                heart.style.animationDuration = (Math.random() * 5 + 5) + 's';
+                heart.style.animationDelay = Math.random() * 5 + 's';
+                heart.style.fontSize = (Math.random() * 2 + 1) + 'rem';
+                
+                container.appendChild(heart);
+            }
+        }
+
+        // --- Simple Confetti Effect for "Yes" ---
+        function startConfetti() {
+            const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff'];
+            
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.style.position = 'fixed';
+                confetti.style.left = '50%';
+                confetti.style.top = '50%';
+                confetti.style.width = '10px';
+                confetti.style.height = '10px';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.zIndex = '100';
+                document.body.appendChild(confetti);
+
+                // Animate confetti explosion
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = Math.random() * 10 + 5;
+                const dx = Math.cos(angle) * velocity;
+                const dy = Math.sin(angle) * velocity;
+                
+                let x = window.innerWidth / 2;
+                let y = window.innerHeight / 2;
+                
+                let opacity = 1;
+
+                const animate = () => {
+                    x += dx;
+                    y += dy + 2; // Gravity
+                    opacity -= 0.02;
+                    
+                    confetti.style.left = x + 'px';
+                    confetti.style.top = y + 'px';
+                    confetti.style.opacity = opacity;
+
+                    if (opacity > 0) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        confetti.remove();
+                    }
+                };
+                requestAnimationFrame(animate);
+            }
+        }
+
+        // Initialize background hearts
+        createHearts();
+
+    </script>
+</body>
+</html>
