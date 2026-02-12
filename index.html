@@ -10,6 +10,7 @@
         body {
             font-family: 'Quicksand', sans-serif;
             overflow: hidden; /* Prevent scrollbars when button moves */
+            touch-action: manipulation; /* Improves touch response */
         }
         h1, .romantic-font {
             font-family: 'Pacifico', cursive;
@@ -39,7 +40,7 @@
 
         /* Button transition for smooth sliding movement */
         #noBtn {
-            transition: transform 0.1s ease-out; /* Made faster */
+            transition: transform 0.1s ease-out; 
         }
         
         /* Pulse animation for the Yes button */
@@ -69,17 +70,18 @@
                  onerror="this.src='https://placehold.co/150x150/ffb6c1/ffffff?text=U+R+Cute'">
         </div>
 
-        <h1 class="text-4xl md:text-5xl text-pink-600 mb-8 drop-shadow-sm">Will you be my Valentine?</h1>
+        <h1 class="text-3xl md:text-5xl text-pink-600 mb-8 drop-shadow-sm">Will you be my Valentine?</h1>
 
-        <div class="flex flex-row gap-6 justify-center items-center relative w-full z-20">
+        <div class="flex flex-row gap-4 justify-center items-center relative w-full z-20">
             
             <!-- Yes Button -->
-            <button id="yesBtn" onclick="handleYes()" class="pulse-heart bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-8 rounded-full text-xl shadow-lg transform transition-all hover:scale-110">
+            <button id="yesBtn" onclick="handleYes()" class="pulse-heart bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 md:py-3 md:px-8 rounded-full text-lg md:text-xl shadow-lg transform transition-all hover:scale-110">
                 Yes! 💖
             </button>
 
             <!-- No Button -->
-            <button id="noBtn" onmouseover="moveButton()" ontouchstart="moveButton()" class="bg-red-400 text-white font-bold py-3 px-8 rounded-full text-xl shadow-lg cursor-not-allowed">
+            <!-- Added preventDefault to touch events -->
+            <button id="noBtn" onmouseover="moveButton(event)" ontouchstart="moveButton(event)" class="bg-red-400 text-white font-bold py-2 px-6 md:py-3 md:px-8 rounded-full text-lg md:text-xl shadow-lg cursor-not-allowed">
                 No 😢
             </button>
         </div>
@@ -87,8 +89,8 @@
 
     <!-- Success Message (Hidden by default) -->
     <div id="successMessage" class="hidden flex-col items-center justify-center text-center z-50 animate-bounce">
-        <h1 class="text-5xl md:text-7xl text-white font-bold mb-4 drop-shadow-lg romantic-font">YAY! I knew it! ❤️</h1>
-        <p class="text-xl md:text-3xl text-white font-semibold">Love you bubu, happy Valentines!</p>
+        <h1 class="text-4xl md:text-7xl text-white font-bold mb-4 drop-shadow-lg romantic-font">YAY! I knew it! ❤️</h1>
+        <p class="text-xl md:text-3xl text-white font-semibold px-4">Love you bubu, happy Valentines!</p>
         <div class="mt-8 text-8xl">🥰🌹🍫</div>
     </div>
 
@@ -103,10 +105,23 @@
         let currentX = 0;
         let currentY = 0;
 
-        function moveButton() {
-            // How far the button should dodge each time (pixels)
-            const moveAmount = 200;
-            const padding = 30; // Safety buffer between buttons
+        function moveButton(e) {
+            // Prevent default touch behavior (like scrolling) if triggered by touch
+            if(e && e.type === 'touchstart') {
+                e.preventDefault();
+            }
+
+            // Get viewport dimensions
+            const winWidth = window.innerWidth;
+            const winHeight = window.innerHeight;
+            const isMobile = winWidth < 768; // Check if mobile
+
+            // Adjust parameters based on device
+            // Mobile gets smaller jumps and buffers to stay on screen
+            const moveAmount = isMobile ? 80 : 200; 
+            const minMove = isMobile ? 30 : 50;
+            const padding = isMobile ? 20 : 30; // Safety buffer between buttons
+            const edgeBuffer = isMobile ? 20 : 50; // Keep away from screen edges
 
             // Get current positions
             const yesRect = yesBtn.getBoundingClientRect();
@@ -118,9 +133,9 @@
                 const dirX = Math.random() < 0.5 ? -1 : 1;
                 const dirY = Math.random() < 0.5 ? -1 : 1;
 
-                // Calculate proposed new offsets (at least 50px away)
-                let moveX = (Math.random() * moveAmount + 50) * dirX;
-                let moveY = (Math.random() * moveAmount + 50) * dirY;
+                // Calculate proposed new offsets
+                let moveX = (Math.random() * moveAmount + minMove) * dirX;
+                let moveY = (Math.random() * moveAmount + minMove) * dirY;
 
                 // Predict where the button would end up on screen
                 const newLeft = noRect.left + moveX;
@@ -128,9 +143,12 @@
                 const newRight = newLeft + noRect.width;
                 const newBottom = newTop + noRect.height;
 
-                // 1. Check Window Boundaries
-                if (newLeft < 0 || newRight > window.innerWidth ||
-                    newTop < 0 || newBottom > window.innerHeight) {
+                // 1. Check Window Boundaries (with edgeBuffer)
+                // Ensures button stays completely inside the visible area
+                if (newLeft < edgeBuffer || 
+                    newRight > winWidth - edgeBuffer ||
+                    newTop < edgeBuffer || 
+                    newBottom > winHeight - edgeBuffer) {
                     continue; // Try again
                 }
 
@@ -156,7 +174,7 @@
         // Add click event listener just in case they manage to click it (fast fingers!)
         noBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            moveButton();
+            moveButton(e);
         });
 
         // --- Logic for the "Yes" Button ---
